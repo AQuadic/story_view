@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
-import '../utils.dart';
 import '../controller/story_controller.dart';
+import '../utils.dart';
 
 /// Utitlity to load image (gif, png, jpg, etc) media just once. Resource is
 /// cached to disk with default configurations of [DefaultCacheManager].
@@ -103,9 +105,11 @@ class StoryImage extends StatefulWidget {
 }
 
 class StoryImageState extends State<StoryImage> {
-  ui.Image? currentFrame;
+  // ui.Image? currentFrame;
 
   Timer? _timer;
+
+  bool _isLoaded = false;
 
   StreamSubscription<PlaybackState>? _streamSubscription;
 
@@ -131,17 +135,17 @@ class StoryImageState extends State<StoryImage> {
 
     widget.controller?.pause();
 
-    widget.imageLoader.loadImage(() async {
-      if (mounted) {
-        if (widget.imageLoader.state == LoadState.success) {
-          widget.controller?.play();
-          forward();
-        } else {
-          // refresh to show error
-          setState(() {});
-        }
-      }
-    });
+    // widget.imageLoader.loadImage(() async {
+    //   if (mounted) {
+    //     if (widget.imageLoader.state == LoadState.success) {
+    //       widget.controller?.play();
+    //       forward();
+    //     } else {
+    //       // refresh to show error
+    //       setState(() {});
+    //     }
+    //   }
+    // });
   }
 
   @override
@@ -159,6 +163,14 @@ class StoryImageState extends State<StoryImage> {
     }
   }
 
+  _imageLoaded() {
+    if (_isLoaded) return;
+    _isLoaded = true;
+    widget.imageLoader.state = LoadState.success;
+    widget.controller?.play();
+    forward();
+  }
+
   void forward() async {
     this._timer?.cancel();
 
@@ -168,44 +180,50 @@ class StoryImageState extends State<StoryImage> {
       return;
     }
 
-    final nextFrame = await widget.imageLoader.frames!.getNextFrame();
-
-    this.currentFrame = nextFrame.image;
-
-    if (nextFrame.duration > Duration(milliseconds: 0)) {
-      this._timer = Timer(nextFrame.duration, forward);
-    }
+    // final nextFrame = await widget.imageLoader.frames!.getNextFrame();
+    //
+    // this.currentFrame = nextFrame.image;
+    //
+    // if (nextFrame.duration > Duration(milliseconds: 0)) {
+    this._timer = Timer(Duration(milliseconds: 5000), forward);
+    // }
 
     setState(() {});
   }
 
   Widget getContentView() {
-    switch (widget.imageLoader.state) {
-      case LoadState.success:
-        return RawImage(
-          image: this.currentFrame,
-          fit: widget.fit,
-        );
-      case LoadState.failure:
-        return Center(
-            child: Text(
-          "Image failed to load.",
-          style: TextStyle(
-            color: Colors.white,
-          ),
-        ));
-      default:
-        return Center(
-          child: Container(
-            width: 70,
-            height: 70,
-            child: CircularProgressIndicator(
+    return CachedNetworkImage(
+      imageUrl: widget.imageLoader.url,
+      progressIndicatorBuilder: (_, __, progress) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               strokeWidth: 3,
             ),
-          ),
+            SizedBox(height: 16),
+            Text(
+              progress.progress == null
+                  ? 'Loading...'
+                  : '${(progress.progress! * 100).toStringAsFixed(0)} / 100',
+              style: Theme.of(context)
+                  .textTheme
+                  .headline2!
+                  .copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         );
-    }
+      },
+      imageBuilder: (_, imageProvider) {
+        _imageLoaded();
+        return Image(image: imageProvider);
+      },
+    );
   }
 
   @override
