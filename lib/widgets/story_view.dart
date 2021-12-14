@@ -405,6 +405,8 @@ class StoryView extends StatefulWidget {
   // Controls the playback of the stories
   final StoryController controller;
 
+  final String languageCode;
+
   StoryView({
     required this.storyItems,
     required this.controller,
@@ -414,6 +416,7 @@ class StoryView extends StatefulWidget {
     this.repeat = false,
     this.inline = false,
     this.onVerticalSwipeComplete,
+    this.languageCode = 'en',
   });
 
   @override
@@ -635,6 +638,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                       .map((it) => PageData(it!.duration, it.shown))
                       .toList(),
                   this._currentAnimation,
+                  widget.languageCode,
                   key: UniqueKey(),
                   indicatorHeight: widget.inline
                       ? IndicatorHeight.small
@@ -726,10 +730,12 @@ class PageBar extends StatefulWidget {
   final List<PageData> pages;
   final Animation<double>? animation;
   final IndicatorHeight indicatorHeight;
+  final String languageCode;
 
   PageBar(
     this.pages,
-    this.animation, {
+    this.animation,
+    this.languageCode, {
     this.indicatorHeight = IndicatorHeight.large,
     Key? key,
   }) : super(key: key);
@@ -768,20 +774,34 @@ class PageBarState extends State<PageBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: widget.pages.map((it) {
-        return Expanded(
-          child: Container(
-            padding: EdgeInsets.only(
-                right: widget.pages.last == it ? 0 : this.spacing),
-            child: StoryProgressIndicator(
-              isPlaying(it) ? widget.animation!.value : (it.shown ? 1 : 0),
-              indicatorHeight:
-                  widget.indicatorHeight == IndicatorHeight.large ? 5 : 3,
+    return Directionality(
+      textDirection:
+          widget.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+      child: Row(
+        children: widget.pages.map((it) {
+          return Expanded(
+            child: Container(
+              padding: EdgeInsets.only(
+                right: widget.languageCode == 'ar'
+                    ? 0
+                    : widget.pages.last == it
+                        ? 0
+                        : this.spacing,
+                left: widget.languageCode == 'ar'
+                    ? widget.pages.last == it
+                        ? 0
+                        : this.spacing
+                    : 0,
+              ),
+              child: StoryProgressIndicator(
+                isPlaying(it) ? widget.animation!.value : (it.shown ? 1 : 0),
+                indicatorHeight:
+                    widget.indicatorHeight == IndicatorHeight.large ? 5 : 3,
+              ),
             ),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 }
