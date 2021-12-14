@@ -533,8 +533,9 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
       }
     });
 
-    _currentAnimation =
-        Tween(begin: 0.0, end: 1.0).animate(_animationController!);
+    _currentAnimation = widget.languageCode == 'ar'
+        ? Tween(begin: 1.0, end: 0.0).animate(_animationController!)
+        : Tween(begin: 0.0, end: 1.0).animate(_animationController!);
 
     widget.controller.play();
   }
@@ -662,7 +663,9 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                   if (_nextDebouncer?.isActive == false) {
                     widget.controller.play();
                   } else {
-                    widget.controller.next();
+                    widget.languageCode == 'ar'
+                        ? widget.controller.previous()
+                        : widget.controller.next();
                   }
                 },
                 onVerticalDragStart: widget.onVerticalSwipeComplete == null
@@ -705,7 +708,9 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
             heightFactor: 1,
             child: SizedBox(
                 child: GestureDetector(onTap: () {
-                  widget.controller.previous();
+                  widget.languageCode == 'ar'
+                      ? widget.controller.next()
+                      : widget.controller.previous();
                 }),
                 width: 70),
           ),
