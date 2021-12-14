@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:math';
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:collection/collection.dart' show IterableExtension;
@@ -468,7 +468,6 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
         case PlaybackState.play:
           _removeNextHold();
           this._animationController?.forward();
-          if (widget.languageCode == 'ar') this._animationController?.reverse();
           break;
 
         case PlaybackState.pause:
@@ -534,9 +533,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
       }
     });
 
-    _currentAnimation = widget.languageCode == 'ar'
-        ? Tween(begin: 1.0, end: 0.0).animate(_animationController!)
-        : Tween(begin: 0.0, end: 1.0).animate(_animationController!);
+    _currentAnimation =
+        Tween(begin: 0.0, end: 1.0).animate(_animationController!);
 
     widget.controller.play();
   }
@@ -596,8 +594,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
       }
     } else {
       // this is the last page, progress animation should skip to end
-      _animationController!.animateTo(widget.languageCode == 'ar' ? 0.0 : 1.0,
-          duration: Duration(milliseconds: 10));
+      _animationController!
+          .animateTo(1.0, duration: Duration(milliseconds: 10));
     }
   }
 
@@ -780,34 +778,21 @@ class PageBarState extends State<PageBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection:
-          widget.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
-      child: Row(
-        children: widget.pages.map((it) {
-          return Expanded(
-            child: Container(
-              padding: EdgeInsets.only(
-                right: widget.languageCode == 'ar'
-                    ? 0
-                    : widget.pages.last == it
-                        ? 0
-                        : this.spacing,
-                left: widget.languageCode == 'ar'
-                    ? widget.pages.last == it
-                        ? 0
-                        : this.spacing
-                    : 0,
-              ),
-              child: StoryProgressIndicator(
-                isPlaying(it) ? widget.animation!.value : (it.shown ? 1 : 0),
-                indicatorHeight:
-                    widget.indicatorHeight == IndicatorHeight.large ? 5 : 3,
-              ),
+    return Row(
+      children: widget.pages.map((it) {
+        return Expanded(
+          child: Container(
+            padding: EdgeInsets.only(
+                right: widget.pages.last == it ? 0 : this.spacing),
+            child: StoryProgressIndicator(
+              isPlaying(it) ? widget.animation!.value : (it.shown ? 1 : 0),
+              widget.languageCode,
+              indicatorHeight:
+                  widget.indicatorHeight == IndicatorHeight.large ? 5 : 3,
             ),
-          );
-        }).toList(),
-      ),
+          ),
+        );
+      }).toList(),
     );
   }
 }
@@ -818,25 +803,31 @@ class StoryProgressIndicator extends StatelessWidget {
   /// From `0.0` to `1.0`, determines the progress of the indicator
   final double value;
   final double indicatorHeight;
+  final String languageCode;
 
   StoryProgressIndicator(
-    this.value, {
+    this.value,
+    this.languageCode, {
     this.indicatorHeight = 5,
   });
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size.fromHeight(
-        this.indicatorHeight,
-      ),
-      foregroundPainter: IndicatorOval(
-        Colors.white.withOpacity(0.8),
-        this.value,
-      ),
-      painter: IndicatorOval(
-        Colors.white.withOpacity(0.4),
-        1.0,
+    return Transform(
+      transform:
+          languageCode == 'ar' ? Matrix4.rotationY(math.pi) : Matrix4.zero(),
+      child: CustomPaint(
+        size: Size.fromHeight(
+          this.indicatorHeight,
+        ),
+        foregroundPainter: IndicatorOval(
+          Colors.white.withOpacity(0.8),
+          this.value,
+        ),
+        painter: IndicatorOval(
+          Colors.white.withOpacity(0.4),
+          1.0,
+        ),
       ),
     );
   }
@@ -871,7 +862,7 @@ class ContrastHelper {
       double value = it!.toDouble() / 255.0;
       return value <= 0.03928
           ? value / 12.92
-          : pow((value + 0.055) / 1.055, 2.4);
+          : math.pow((value + 0.055) / 1.055, 2.4);
     }).toList();
 
     return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
