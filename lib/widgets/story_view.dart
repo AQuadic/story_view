@@ -533,9 +533,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
       }
     });
 
-    _currentAnimation = widget.languageCode == 'ar'
-        ? Tween(begin: 1.0, end: 0.0).animate(_animationController!)
-        : Tween(begin: 0.0, end: 1.0).animate(_animationController!);
+    Tween(begin: 0.0, end: 1.0).animate(_animationController!);
 
     widget.controller.play();
   }
@@ -800,6 +798,7 @@ class PageBarState extends State<PageBar> {
               ),
               child: StoryProgressIndicator(
                 isPlaying(it) ? widget.animation!.value : (it.shown ? 1 : 0),
+                widget.languageCode,
                 indicatorHeight:
                     widget.indicatorHeight == IndicatorHeight.large ? 5 : 3,
               ),
@@ -817,9 +816,11 @@ class StoryProgressIndicator extends StatelessWidget {
   /// From `0.0` to `1.0`, determines the progress of the indicator
   final double value;
   final double indicatorHeight;
+  final String languageCode;
 
   StoryProgressIndicator(
-    this.value, {
+    this.value,
+    this.languageCode, {
     this.indicatorHeight = 5,
   });
 
@@ -832,10 +833,12 @@ class StoryProgressIndicator extends StatelessWidget {
       foregroundPainter: IndicatorOval(
         Colors.white.withOpacity(0.8),
         this.value,
+        languageCode,
       ),
       painter: IndicatorOval(
         Colors.white.withOpacity(0.4),
         1.0,
+        languageCode,
       ),
     );
   }
@@ -844,15 +847,20 @@ class StoryProgressIndicator extends StatelessWidget {
 class IndicatorOval extends CustomPainter {
   final Color color;
   final double widthFactor;
+  final String languageCode;
 
-  IndicatorOval(this.color, this.widthFactor);
+  IndicatorOval(this.color, this.widthFactor, this.languageCode);
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = this.color;
     canvas.drawRRect(
         RRect.fromRectAndRadius(
-            Rect.fromLTWH(0, 0, size.width * this.widthFactor, size.height),
+            Rect.fromLTRB(
+                languageCode == 'ar' ? size.width * this.widthFactor : 0,
+                0,
+                languageCode == 'ar' ? 0 : size.width * this.widthFactor,
+                size.height),
             Radius.circular(3)),
         paint);
   }
