@@ -534,15 +534,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
     });
 
     _currentAnimation =
-        Tween(begin: 0.0, end: 1.0).animate(_animationController!)
-          ..addListener(() {
-            setState(() {});
-          })
-          ..addStatusListener((status) {
-            _animationController?.reverse();
-          });
-
-    this._animationController?.forward();
+        Tween(begin: 0.0, end: 1.0).animate(_animationController!);
 
     widget.controller.play();
   }
@@ -821,23 +813,36 @@ class StoryProgressIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Transform(
-      transform:
-          languageCode == 'ar' ? Matrix4.rotationY(math.pi) : Matrix4.zero(),
-      child: CustomPaint(
-        size: Size.fromHeight(
-          this.indicatorHeight,
-        ),
-        foregroundPainter: IndicatorOval(
-          Colors.white.withOpacity(0.8),
-          this.value,
-        ),
-        painter: IndicatorOval(
-          Colors.white.withOpacity(0.4),
-          1.0,
-        ),
-      ),
-    );
+    return languageCode == 'ar'
+        ? Transform(
+            transform: Matrix4.rotationY(math.pi),
+            child: CustomPaint(
+              size: Size.fromHeight(
+                this.indicatorHeight,
+              ),
+              foregroundPainter: IndicatorOval(
+                Colors.white.withOpacity(0.8),
+                this.value,
+              ),
+              painter: IndicatorOval(
+                Colors.white.withOpacity(0.4),
+                1.0,
+              ),
+            ),
+          )
+        : CustomPaint(
+            size: Size.fromHeight(
+              this.indicatorHeight,
+            ),
+            foregroundPainter: IndicatorOval(
+              Colors.white.withOpacity(0.8),
+              this.value,
+            ),
+            painter: IndicatorOval(
+              Colors.white.withOpacity(0.4),
+              1.0,
+            ),
+          );
   }
 }
 
