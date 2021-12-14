@@ -534,7 +534,15 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
     });
 
     _currentAnimation =
-        Tween(begin: 0.0, end: 1.0).animate(_animationController!);
+        Tween(begin: 0.0, end: 1.0).animate(_animationController!)
+          ..addListener(() {
+            setState(() {});
+          })
+          ..addStatusListener((status) {
+            _animationController?.reverse();
+          });
+
+    this._animationController?.forward();
 
     widget.controller.play();
   }
