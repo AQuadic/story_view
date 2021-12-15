@@ -783,7 +783,17 @@ class PageBarState extends State<PageBar> {
         return Expanded(
           child: Container(
             padding: EdgeInsets.only(
-                right: widget.pages.last == it ? 0 : this.spacing),
+              right: widget.languageCode == 'ar'
+                  ? 0
+                  : widget.pages.last == it
+                      ? 0
+                      : this.spacing,
+              left: widget.languageCode == 'ar'
+                  ? widget.pages.last == it
+                      ? 0
+                      : this.spacing
+                  : 0,
+            ),
             child: StoryProgressIndicator(
               isPlaying(it) ? widget.animation!.value : (it.shown ? 1 : 0),
               widget.languageCode,
@@ -823,10 +833,12 @@ class StoryProgressIndicator extends StatelessWidget {
               foregroundPainter: IndicatorOval(
                 Colors.white.withOpacity(0.8),
                 this.value,
+                languageCode,
               ),
               painter: IndicatorOval(
                 Colors.white.withOpacity(0.4),
                 1.0,
+                languageCode,
               ),
             ),
           )
@@ -837,10 +849,12 @@ class StoryProgressIndicator extends StatelessWidget {
             foregroundPainter: IndicatorOval(
               Colors.white.withOpacity(0.8),
               this.value,
+              languageCode,
             ),
             painter: IndicatorOval(
               Colors.white.withOpacity(0.4),
               1.0,
+              languageCode,
             ),
           );
   }
@@ -849,15 +863,17 @@ class StoryProgressIndicator extends StatelessWidget {
 class IndicatorOval extends CustomPainter {
   final Color color;
   final double widthFactor;
+  final String languageCode;
 
-  IndicatorOval(this.color, this.widthFactor);
+  IndicatorOval(this.color, this.widthFactor, this.languageCode);
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = this.color;
     canvas.drawRRect(
         RRect.fromRectAndRadius(
-            Rect.fromLTWH(0, 0, size.width * this.widthFactor, size.height),
+            Rect.fromLTWH(languageCode == 'ar' ? -size.width : 0, 0,
+                size.width * this.widthFactor, size.height),
             Radius.circular(3)),
         paint);
   }
